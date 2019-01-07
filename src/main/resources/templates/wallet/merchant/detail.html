@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>商户详情</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/lib/layui/css/layui.css" media="all">
+    <script src="/lib/layui/layui.all.js"></script>
+</head>
+<body>
+<div style="margin-top: 10px">
+    <form class="layui-form" action="" method="post">
+        <div class="layui-form-item">
+            <label class="layui-form-label">商户名称</label>
+            <div class="layui-input-inline">
+                <input type="text" disabled autocomplete="off" class="layui-input" th:value="${detail.merchant.merchantName}">
+            </div>
+            <label class="layui-form-label">商户ID</label>
+            <div class="layui-input-inline">
+                <input type="text" disabled autocomplete="off" class="layui-input" th:value="${detail.merchant.merchantId}">
+            </div>
+        </div>
+        <!--后台和登录用户我也校验了 不用想篡改了-->
+        <input type="hidden" name="id" th:value="${detail.merchant.id}">
+        <input type="hidden" name="merchantId" th:value="${detail.merchant.merchantId}">
+        <div class="layui-form-item">
+            <label class="layui-form-label">IP白名单</label>
+            <input type="text" name="ipWhiteList" autocomplete="off" class="layui-input" th:value="${detail.merchant.ipWhiteList}"
+                   style="width: 1000px">
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">签名密钥</label>
+            <div class="layui-input-block">
+                <table>
+                    <tr>
+                        <td>
+                            <input type="text" name="merchantTradeToken" autocomplete="off" class="layui-input" th:value="${detail.merchantTradeToken}"
+                                   style="width: 580px">
+                        </td>
+                        <td>
+                            <button type="button" class="layui-btn layui-btn-danger" style="margin-left: 20px" onclick="generateAlert()">重新生成</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <fieldset class="layui-elem-field layui-field-title site-demo-button">
+            <legend>支付宝配置</legend>
+        </fieldset>
+        <div class="layui-form-item">
+            <label class="layui-form-label">appid</label>
+            <div class="layui-input-inline">
+                <input type="text" name="aliAppid" autocomplete="off" class="layui-input" th:value="${detail.aliParams.appid}">
+            </div>
+            <label class="layui-form-label">signType</label>
+            <div class="layui-input-inline">
+                <input type="text" name="aliSignType" autocomplete="off" class="layui-input" th:value="${detail.aliParams.signType}">
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">publicKey</label>
+            <div class="layui-input-block">
+                <textarea name="aliPublicKey" class="layui-textarea" th:text="${detail.aliParams.publicKey}"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">privateKey</label>
+            <div class="layui-input-block">
+                <textarea name="aliPrivateKey" class="layui-textarea" th:text="${detail.aliParams.privateKey}"></textarea>
+            </div>
+        </div>
+        <fieldset class="layui-elem-field layui-field-title site-demo-button">
+            <legend>微信配置</legend>
+        </fieldset>
+        <div class="layui-form-item">
+            <label class="layui-form-label">APPID</label>
+            <input type="text" name="wxpayAppid" autocomplete="off" class="layui-input" th:value="${detail.wxParams.wxpayAppid}"
+                   style="width: 1000px">
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">MCHID</label>
+            <input type="text" name="wxpayMchid" autocomplete="off" class="layui-input" th:value="${detail.wxParams.wxpayMchid}"
+                   style="width: 1000px">
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">PRIVATEKEY</label>
+            <input type="text" name="wxpayPrivateKey" autocomplete="off" class="layui-input" th:value="${detail.wxParams.wxpayPrivateKey}"
+                   style="width: 1000px">
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" style="background-color: #cb0303;color: white" lay-submit lay-filter="merchantForm">立即提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    let $;
+    layui.use(['table', 'form', 'jquery'], function () {
+        let form = layui.form;
+        $ = layui.jquery;
+        form.render();
+        form.on('submit(merchantForm)', function (formdata) {
+            $.ajax({
+                url: '/merchant/update',
+                type: 'post',
+                data: formdata.field,
+                dataType: 'json',
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    if (XMLHttpRequest.status === 403) {
+                        layer.alert('权限不足', {
+                            title: '提示信息'
+                        });
+                    } else {
+                        layer.alert('网络错误', {
+                            title: '提示信息'
+                        });
+                    }
+
+                },
+                success: function (data) {
+                    if (data.success) {
+                        layer.alert('修改成功', {
+                            title: '提示信息',
+                            closeBtn: 0,
+                            yes: function () {
+                                let index = parent.layer.getFrameIndex(window.name);
+                                parent.layer.close(index);
+                                parent.window.location.reload();
+                            }
+                        });
+                    } else {
+                        layer.alert(data.message, {
+                            title: '提示信息'
+                        });
+                    }
+                }
+            });
+            return false;
+        });
+
+
+    });
+
+    function generateAlert() {
+        layer.alert('还想重新生成，想的有点多啊', {
+            title: '提示信息'
+        });
+        return false;
+    }
+</script>
+</body>
+</html>

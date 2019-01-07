@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>商户列表</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/lib/layui/css/layui.css" media="all">
+    <script src="/lib/layui/layui.all.js"></script>
+    <style>
+        .layui-layer-title {
+            background-color: #CB0303;
+            color: white;
+        }
+    </style>
+</head>
+<body style="padding-left: 20px;padding-top: 20px">
+<form id="filterForm" class="layui-form" action="/operator/operatorList" method="post">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">管理员ID</label>
+            <div class="layui-input-inline">
+                <input type="text" th:value="${result.reqVo.id}" id="glyId" name="id" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">管理员名称</label>
+            <div class="layui-input-inline">
+                <input type="text" th:value="${result.reqVo.operatorName}" id="glymc" name="operatorName" utocomplete="off"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">管理员昵称</label>
+            <div class="layui-input-inline">
+                <input type="text" th:value="${result.reqVo.operatorNickName}" id="glync" name="operatorNickName"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">所属商户</label>
+            <div class="layui-input-inline">
+                <select name="operatorSource" id="sssh" lay-verify="required" lay-search="">
+                    <option value="">选择商户</option>
+                    <option th:selected="${result.reqVo.operatorSource eq merchant.merchantId}"
+                            th:each="merchant : ${result.merchantList}" th:value="${merchant.merchantId}"
+                            th:text="${merchant.merchantName}"></option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div>
+                <button type="button" style="background-color:#ed691c;color: white" class="layui-btn layui-btn-radius" th:onclick="'filterOperatorList()'">筛选</button>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div>
+                <button type="button" style="background-color:#ffaf00;color: white" class="layui-btn layui-btn-radius" th:onclick="'addOperator()'">
+                    增加管理员
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+<div class="layui-form">
+    <table class="layui-table">
+        <colgroup>
+            <col width="150">
+            <col width="150">
+            <col width="200">
+            <col width="200">
+            <col>
+        </colgroup>
+        <thead>
+        <tr>
+            <th>管理员ID</th>
+            <th>管理员名称</th>
+            <th>管理员昵称</th>
+            <th>所属商户</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="operator:${result.operatorVoList}">
+            <td th:text="${operator.id}"></td>
+            <td th:text="${operator.operatorName}"></td>
+            <td th:text="${operator.operatorNickName}"></td>
+            <td th:text="${operator.merchantName}"></td>
+            <td>
+                <button style="background-color:#ed691c;color: white" class="layui-btn layui-btn-radius"
+                        th:onclick="'viewAndUpdateOperatorRoleInfo('+${operator.id}+')'">
+                    角色
+                </button>
+                <button style="background-color:#ffaf00;color: white" class="layui-btn layui-btn-radius"
+                        th:onclick="'resetPassword('+${operator.id}+',&quot;'+${operator.operatorName}+'&quot;)'">
+                    重置密码
+                </button>
+                <button style="background-color:#cb0303;color: white" class="layui-btn layui-btn-radius"
+                        th:onclick="'deleteOperator('+${operator.id}+',&quot;'+${operator.operatorName}+'&quot;)'">
+                    删除
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+</fieldset>
+<div id="pageDiv" style="text-align: center"></div>
+<script src="/lib/layui/layui.js" charset="utf-8"></script>
+<script th:inline="javascript">
+    let $;
+    let frameHeight = window.screen.availHeight * 0.66 + 'px';
+    let frameWidth = window.screen.availWidth * 0.66 + 'px';
+    layui.use(['table', 'jquery'], function () {
+        $ = layui.jquery;
+    });
+
+    layui.use(['laypage', 'layer'], function () {
+        let laypage = layui.laypage
+            , layer = layui.layer;
+        laypage.render({
+            elem: 'pageDiv'
+            , theme: '#CB0303'
+            , limit: [[${result.pageSize}]]
+            , count: [[${result.totalCount}]]
+            , curr: [[${result.pageNo}]]
+            , layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+            , jump: function (obj, first) {
+                //首次不执行
+                if (!first) {
+                    let suffix = "";
+                    let id = $('#glyId').val();
+                    let glymc = $('#glymc').val();
+                    let glync = $('#glync').val();
+                    let sssh = $('#sssh').val();
+                    let pageIndex = obj.curr;
+                    let pageSize = obj.limit;
+                    suffix += "?id=" + id + "&operatorName=" + glymc + "&operatorNickName=" + glync + "&operatorSource=" + sssh + "&pageNo=" + pageIndex + "&pageSize=" + pageSize;
+                    location.href = "/operator/operatorList" + suffix;
+                }
+            }
+        });
+    });
+
+    layui.use(['form'], function () {
+        let form = layui.form;
+        form.render();
+    });
+
+    function viewAndUpdateOperatorRoleInfo(a) {
+        layer.open({
+            type: 2,
+            title: '修改角色信息',
+            area: [frameWidth, frameHeight],
+            fixed: false, //不固定
+            maxmin: true,
+            skin: 'layer-ext-moon',
+            content: ['/operator/authority/roleInfo/' + a]
+        });
+    }
+
+    function resetPassword(a, b) {
+        layer.confirm('请确认是否重置[' + b + ']的密码?', {
+            btn: ['确定', '取消'] //按钮
+        }, function () {
+            $.ajax({
+                url: '/operator/resetPassword/'+a,
+                type: 'post',
+                dataType: 'json',
+                error: function (XMLHttpRequest) {
+                    if (XMLHttpRequest.status === 403) {
+                        layer.alert('权限不足', {
+                            title: '提示信息'
+                        });
+                    } else {
+                        layer.alert('网络错误', {
+                            title: '提示信息'
+                        });
+                    }
+                },
+                success: function (data) {
+                    if (data.success) {
+                        layer.alert('重置成功！重置后的密码为:'+data.data, {
+                            title: '提示信息'
+                        });
+                    } else {
+                        layer.alert("重置失败！", {
+                            title: '提示信息'
+                        });
+                    }
+                }
+            });
+        }, function () {
+        });
+    }
+
+    function addOperator() {
+        layer.open({
+            type: 2,
+            title: '增加管理员',
+            area: [frameWidth, frameHeight],
+            fixed: false, //不固定
+            maxmin: true,
+            skin: 'layer-ext-moon',
+            content: ['/operator/addOperatorIndex']
+        });
+    }
+
+    function deleteOperator(a, b) {
+        layer.confirm('请确认将[' + b + ']删除？', {
+            btn: ['确定', '取消'] //按钮
+        }, function () {
+            $.ajax({
+                url: '/operator/delete',
+                type: 'post',
+                data: {
+                    "id": a
+                },
+                dataType: 'json',
+                error: function (XMLHttpRequest) {
+                    if (XMLHttpRequest.status === 403) {
+                        layer.alert('权限不足', {
+                            title: '提示信息'
+                        });
+                    } else {
+                        layer.alert('网络错误', {
+                            title: '提示信息'
+                        });
+                    }
+                },
+                success: function (data) {
+                    if (data.success) {
+                        layer.alert('删除成功！', {
+                            title: '提示信息',
+                            yes: function () {
+                                window.location.reload();
+                            }
+                        });
+                    } else {
+                        layer.alert("删除失败！", {
+                            title: '提示信息'
+                        });
+                    }
+                }
+            });
+        }, function () {
+        });
+    }
+
+    function filterOperatorList() {
+        $("#filterForm").submit();
+    }
+</script>
+</body>
+</html>

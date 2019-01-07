@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>修改权限信息</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/lib/layui/css/layui.css" media="all">
+    <script src="/lib/layui/layui.all.js"></script>
+    <style>
+        .layui-layer-title {
+            background-color: #CB0303;
+            color: white;
+        }
+    </style>
+</head>
+<body style="padding-left: 20px;padding-top: 20px">
+<form id="updateForm" class="layui-form">
+    <input type="hidden" name="id" th:value="${authority.id}">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">权限名称</label>
+            <div class="layui-input-inline">
+                <input type="text" name="authorityName" th:value="${authority.authorityName}" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">权限描述</label>
+            <div class="layui-input-inline">
+                <input type="text" name="description" utocomplete="off" th:value="${authority.description}" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div>
+                <button type="button" style="background-color:#ffaf00;color: white" class="layui-btn layui-btn-radius" th:onclick="'updateAuthority()'">
+                    修改权限信息
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+<script th:inline="javascript">
+    let $;
+
+    layui.use(['table', 'jquery'], function () {
+        $ = layui.jquery;
+    });
+
+    function updateAuthority() {
+        $.ajax({
+            url: '/operator/updateAuthority',
+            type: 'post',
+            dataType: 'json',
+            data: $("#updateForm").serialize(),
+            error: function (XMLHttpRequest) {
+                if (XMLHttpRequest.status === 403) {
+                    layer.alert('权限不足', {
+                        title: '提示信息'
+                    });
+                } else {
+                    layer.alert('网络错误', {
+                        title: '提示信息'
+                    });
+                }
+            },
+            success: function (data) {
+                if (data.success) {
+                    layer.alert('修改权限信息成功!', {
+                        title: '提示信息',
+                        yes: function () {
+                            let index = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(index);
+                            parent.window.location.reload();
+                        }
+                    });
+                } else {
+                    layer.alert('修改权限信息失败!', {
+                        title: '提示信息'
+                    });
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>

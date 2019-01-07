@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Merchant Add</title>
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/lib/css/main.css">
+    <link rel="stylesheet" href="/lib/css/doc.min.css">
+    <link rel="stylesheet" href="/lib/layui/css/layui.css" media="all">
+    <script src="/lib/layui/layui.all.js"></script>
+</head>
+<body style="padding-left: 20px;padding-top: 20px">
+<div class="layui-form-item" style="text-align: center;margin-top: 20px">
+    <div class="layui-inline">
+        <label class="layui-form-label">ID</label>
+        <div class="layui-input-inline">
+            <input type="text" readonly="readonly" th:value="${operatorVo.id}" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">名称</label>
+        <div class="layui-input-inline">
+            <input type="text" readonly="readonly" th:value="${operatorVo.operatorName}" utocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">昵称</label>
+        <div class="layui-input-inline">
+            <input type="text" readonly="readonly" th:value="${operatorVo.operatorNickName}"
+                   autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label">商户</label>
+        <div class="layui-input-inline">
+            <input type="text" readonly="readonly" th:value="${operatorVo.merchantName}"
+                   autocomplete="off" class="layui-input">
+        </div>
+    </div>
+</div>
+<div class="layui-main" style="text-align: center;">
+    <div class="layui-box">
+        <div class="layui-box">
+            <div class="layui-box">
+                <div class="layui-box" style="text-align: center">
+                    <div class="layui-box" style="text-align: center">
+                        <form role="form" class="form-inline">
+                            <div class="form-group">
+                                <label style="font-size:1.5em;">未分配角色列表</label><br>
+                                <select id="leftList" class="form-control" multiple size="20"
+                                        style="width:250px;overflow-y:auto;">
+                                    <tr th:each="role:${unassignList}">
+                                        <option th:value="${role.id}"
+                                                th:text="|${role.roleName},${role.description}|"></option>
+                                    </tr>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-left:40px;">
+                                <ul>
+                                    <li id="left2RightBtn"
+                                        class="btn btn-default glyphicon glyphicon-chevron-right"></li>
+                                    <br>
+                                    <li id="right2LeftBtn" class="btn btn-default glyphicon glyphicon-chevron-left"
+                                        style="margin-top:20px;"></li>
+                                </ul>
+                            </div>
+                            <div class="form-group" style="margin-left:40px;">
+                                <label style="font-size:1.5em;">已分配角色列表</label><br>
+                                <select id="rightList" class="form-control" multiple size="20"
+                                        style="width:250px;overflow-y:auto;">
+                                    <tr th:each="role:${assignList}">
+                                        <option th:value="${role.id}"
+                                                th:text="|${role.roleName},${role.description}|"></option>
+                                    </tr>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    let $;
+    layui.use(['table', 'jquery'], function () {
+        $ = layui.jquery;
+    });
+
+    $(function () {
+        $("#left2RightBtn").click(function () {
+            // 将左边列表中被选中的元素放置在右边列表中
+            var selectOptions = $("#leftList :selected");
+            if (selectOptions.length == 0) {
+                layer.msg("请选择需要分配的角色信息。", {time: 1000, icon: 5, shift: 6}, function () {
+                });
+            } else {
+                // 增加用户和角色的关系数据
+                var jsonData = {"operatorId": [[${operatorVo.id}]]};
+                $.each(selectOptions, function (i, n) {
+                    jsonData["ids[" + i + "]"] = n.value;
+                });
+                $.ajax({
+                    type: "POST",
+                    url: "/operator/assignRoles",
+                    data: jsonData,
+                    success: function (result) {
+                        if (result.success) {
+                            layer.msg("分配角色信息成功。", {time: 1000, icon: 6}, function () {
+                                $("#rightList").append(selectOptions);
+                            });
+                        } else {
+                            layer.msg("分配角色信息失败。", {time: 1000, icon: 5, shift: 6}, function () {
+                            });
+                        }
+                    }
+                });
+            }
+        });
+        $("#right2LeftBtn").click(function () {
+            var selectOptions = $("#rightList :selected");
+            if (selectOptions.length == 0) {
+                layer.msg("请选择需要取消分配的角色信息。", {time: 1000, icon: 5, shift: 6}, function () {
+                });
+            } else {
+                var jsonData = {"operatorId": [[${operatorVo.id}]]};
+                $.each(selectOptions, function (i, n) {
+                    jsonData["ids[" + i + "]"] = n.value;
+                });
+                $.ajax({
+                    type: "POST",
+                    url: "/operator/unAssignRoles",
+                    data: jsonData,
+                    success: function (result) {
+                        if (result.success) {
+                            layer.msg("取消分配角色信息成功。", {time: 1000, icon: 6}, function () {
+                                $("#leftList").append(selectOptions);
+                            });
+                        } else {
+                            layer.msg("取消分配角色信息失败。", {time: 1000, icon: 5, shift: 6}, function () {
+                            });
+                        }
+                    }
+                });
+
+            }
+        });
+    })
+
+</script>
+</body>
+</html>

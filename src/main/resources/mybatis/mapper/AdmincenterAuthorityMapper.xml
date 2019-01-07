@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="AdmincenterAuthorityMapper">
+	<resultMap id="BaseResultMap" type="com.hnair.wallet.admincenter.model.AdmincenterAuthority">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="authority_name" property="authorityName" jdbcType="VARCHAR" />
+		<result column="pid" property="pid" jdbcType="INTEGER" />
+		<result column="icon" property="icon" jdbcType="VARCHAR" />
+		<result column="description" property="description" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Where">
+		<if test="id != null"> and id= #{id}</if>	
+		<if test="authorityName != null and authorityName !=''"> and authority_name= #{authorityName}</if>
+		<if test="pid != null"> and pid= #{pid}</if>	
+		<if test="icon != null and icon !=''"> and icon= #{icon}</if>
+		<if test="description != null and description !=''"> and description= #{description}</if>
+	</sql>
+	<sql id="Base_Column_List">
+		id ,
+		authority_name ,
+		pid ,
+		icon ,
+		description 
+	</sql>
+
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from admincenter_authority
+		where
+		id = #{id,jdbcType=INTEGER}
+	</select>
+
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from admincenter_authority
+		where
+		id = #{id,jdbcType=INTEGER}
+	</delete>
+
+	<insert id="insertSelective" parameterType="com.hnair.wallet.admincenter.model.AdmincenterAuthority">
+		insert into admincenter_authority
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">id,</if>	
+			<if test="authorityName != null and authorityName !=''">authority_name,</if>
+			<if test="pid != null">pid,</if>	
+			<if test="icon != null and icon !=''">icon,</if>
+			<if test="description != null and description !=''">description,</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="authorityName != null and authorityName !=''">
+				#{authorityName,jdbcType=VARCHAR},
+			</if>
+			<if test="pid != null">
+				#{pid,jdbcType=INTEGER},
+			</if>
+			<if test="icon != null and icon !=''">
+				#{icon,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null and description !=''">
+				#{description,jdbcType=VARCHAR},
+			</if>
+			
+		</trim>
+	</insert>
+
+	<update id="updateByPrimaryKeySelective" parameterType="com.hnair.wallet.admincenter.model.AdmincenterAuthority">
+		update admincenter_authority
+		<set>
+			<if test="authorityName != null and authorityName !=''">
+				authority_name= #{authorityName,jdbcType=VARCHAR},
+			</if>
+			<if test="pid != null">
+				pid= #{pid,jdbcType=INTEGER},
+			</if>
+			<if test="icon != null and icon !=''">
+				icon= #{icon,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null and description !=''">
+				description= #{description,jdbcType=VARCHAR}
+			</if>
+		</set>
+		where
+		id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<select id="getAll" resultMap="BaseResultMap" parameterType="map">
+		select
+		<include refid="Base_Column_List" />
+		from admincenter_authority where 1=1
+		<include refid="Base_Where" />
+	</select>
+	<select id="pageCount" resultType="java.lang.Integer" parameterType="map">
+		select count(1) from admincenter_authority where 1=1
+		<include refid="Base_Where" />
+	</select>
+	<select id="pageData" resultMap="BaseResultMap" parameterType="map">
+		select
+		<include refid="Base_Column_List" />
+		from admincenter_authority where 1=1
+		<include refid="Base_Where" />
+	</select>
+
+	<select id="selectByIds" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from admincenter_authority where id in
+		<foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+	
+	<select id="queryAllAuthority" resultType="com.hnair.wallet.admincenter.vo.Permission">
+        select
+           id as id,
+           pid as pid,
+           concat(authority_name,' : ',description) as name,
+           icon as icon
+        from admincenter_authority
+    </select>
+
+    <delete id="deleteAuthorityById" parameterType="map">
+        delete from admincenter_authority
+        where id = #{id}
+    </delete>
+</mapper>

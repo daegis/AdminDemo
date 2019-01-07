@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>增加管理员</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/lib/layui/css/layui.css" media="all">
+    <script src="/lib/layui/layui.all.js"></script>
+    <style>
+        .layui-layer-title {
+            background-color: #CB0303;
+            color: white;
+        }
+    </style>
+</head>
+<body style="padding-left: 20px;padding-top: 20px">
+<form id="addForm" class="layui-form">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">管理员名称</label>
+            <div class="layui-input-inline">
+                <input type="text" id="glymc" name="operatorName" utocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">管理员昵称</label>
+            <div class="layui-input-inline">
+                <input type="text" id="glync" name="operatorNickName" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">所属商户</label>
+            <div class="layui-input-inline">
+                <select name="operatorSource" id="sssh" lay-verify="required" lay-search="">
+                    <option value="">选择商户</option>
+                    <option th:each="merchant : ${merchantList}" th:value="${merchant.merchantId}"
+                            th:text="${merchant.merchantName}"></option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div>
+                <button type="button" style="background-color:#ed691c;color: white" class="layui-btn layui-btn-radius" th:onclick="'addoperator()'">增加</button>
+            </div>
+        </div>
+    </div>
+</form>
+<script src="/lib/layui/layui.js" charset="utf-8"></script>
+<script th:inline="javascript">
+    let $;
+
+    layui.use(['table', 'jquery'], function () {
+        $ = layui.jquery;
+    });
+
+    layui.use('form', function () {
+        var form = layui.form;
+        form.render();
+    });
+
+    function addoperator() {
+        $.ajax({
+            url: '/operator/addOperator',
+            type: 'post',
+            dataType: 'json',
+            data: $("#addForm").serialize(),
+            error: function (XMLHttpRequest) {
+                if (XMLHttpRequest.status === 403) {
+                    layer.alert('权限不足', {
+                        title: '提示信息'
+                    });
+                } else {
+                    layer.alert('网络错误', {
+                        title: '提示信息'
+                    });
+                }
+            },
+            success: function (data) {
+                if (data.success) {
+                    layer.alert('增加成功!' + '账号为：' + data.data.operatorName +
+                        ',密码为：' + data.data.password + '。', {
+                        title: '提示信息',
+                        yes: function () {
+                            let index = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(index);
+                            parent.window.location.reload();
+                        }
+                    });
+                } else {
+                    layer.alert(data.message, {
+                        title: '提示信息'
+                    });
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>
